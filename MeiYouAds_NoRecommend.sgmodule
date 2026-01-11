@@ -1,0 +1,106 @@
+name: 美柚 · 工具模式（反检测 / 自适应）
+description: 仅保留经期记录与基础功能，禁用推荐/广告/圈子/运营；使用空数据与结构保持反检测；适配多版本
+author: Extreme by zhou2252022694
+homepage: https://github.com/zhou2252022694-del/egern
+
+rules:
+  # ===== 明确广告 & 埋点域名（直接断）=====
+  - DOMAIN,ad.seeyouyima.com,REJECT
+  - DOMAIN,ad-logs.seeyouyima.com,REJECT
+  - DOMAIN,track.seeyouyima.com,REJECT
+  - DOMAIN,log.seeyouyima.com,REJECT
+  - DOMAIN,mgo.seeyouyima.com,REJECT
+  - DOMAIN,jingqi.youzibuy.com,REJECT
+
+rewrites:
+  # =================================================
+  # 🧠 核心原则：
+  # - 不 REJECT 业务接口
+  # - 返回“像真的一样”的空结构
+  # - 保留 status / 字段 / 类型
+  # =================================================
+
+  # ===== 经期 / 记录相关（完全放行）=====
+  # ❗不写任何 rewrite = 不动 = 100% 原始行为
+
+  # ===== 首页推荐 Feed（反检测空结构）=====
+  - match: ^https?:\/\/circle\.xmseeyouyima\.com\/v\d+\/feeds_.*\?
+    type: jsonjq
+    policy: |
+      {
+        "success": true,
+        "data": {
+          "list": [],
+          "has_more": false,
+          "next_cursor": null
+        }
+      }
+
+  # ===== 圈子 / 社区 =====
+  - match: ^https?:\/\/circle\.xmseeyouyima\.com\/v\d+\/.*
+    type: jsonjq
+    policy: |
+      {
+        "success": true,
+        "data": {}
+      }
+
+  # ===== 我的页面（只保留工具入口）=====
+  - match: ^https?:\/\/users\.seeyouyima\.com\/v\d+\/wo\?
+    type: jsonjq
+    policy: |
+      .data |= {
+        "user": .data.user,
+        "tools": .data.tools,
+        "records": .data.records
+      }
+
+  # ===== VIP / 订阅（假装“你已看过”）=====
+  - match: ^https?:\/\/sub\.seeyouyima\.com\/v\d+\/sub\/my_vip
+    type: jsonjq
+    policy: |
+      {
+        "success": true,
+        "data": {
+          "vip": false,
+          "show": false
+        }
+      }
+
+  # ===== 运营 / 活动 / 弹窗（结构性空）=====
+  - match: ^https?:\/\/.*seeyouyima\.com\/.*(popup|activity|campaign|operation).*
+    type: jsonjq
+    policy: |
+      {
+        "success": true,
+        "data": {}
+      }
+
+  # ===== 配置 / AB / 实验（关键反检测点）=====
+  - match: ^https?:\/\/common\.seeyouyima\.com\/v\d+\/conf_list
+    type: jsonjq
+    policy: |
+      {
+        "success": true,
+        "data": {
+          "abtest": [],
+          "features": {}
+        }
+      }
+
+  - match: ^https?:\/\/config-service\.seeyouyima\.com\/api\/configs\/batch
+    type: jsonjq
+    policy: |
+      {
+        "success": true,
+        "data": {}
+      }
+
+mitm:
+  hostnames:
+    includes:
+      - users.seeyouyima.com
+      - circle.xmseeyouyima.com
+      - sub.seeyouyima.com
+      - common.seeyouyima.com
+      - config-service.seeyouyima.com
