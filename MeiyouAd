@@ -1,5 +1,5 @@
 name: 美柚去广告增强版
-description: 移除开屏广告、推荐、首页及个人中心多余内容，仅保留经期记录
+description: 去开屏、推荐、首页、个人中心、圈子、聊天等全部广告，仅保留经期记录
 author: ZenmoFeiShi[https://github.com/ZenmoFeiShi]
 homepage: https://hub.kelee.one
 icon: https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/PinDuoDuo.png
@@ -15,12 +15,95 @@ rules:
 - domain:
     match: recommend.meiyouapp.com
     policy: REJECT
+- domain:
+    match: banner.meiyouapp.com
+    policy: REJECT
 body_rewrites:
 - response_jq:
     match: ^https://api.meiyouapp.com/homepage
-    filter: delpaths([["result","recommendations"],["result","banner_ads"]])
+    filter: |
+      delpaths([
+        ["result","recommendations"],
+        ["result","banner_ads"],
+        ["result","bottom_tabs"],
+        ["result","dynamic_banner"]
+      ])
+- response_jq:
+    match: ^https://api.meiyouapp.com/personal
+    filter: |
+      delpaths([
+        ["result","icon_set"],
+        ["result","top_personal_icons"],
+        ["result","personal_center_style_v2_vo"]
+      ])
+- response_jq:
+    match: ^https://api.meiyouapp.com/circle
+    filter: delpaths([
+        ["result","recommendations"],
+        ["result","dynamic_banner"]
+      ])
 map_locals:
 - match: ^https://api.meiyouapp.com/user/recommendations
+  status_code: 200
+  headers:
+    Content-Type: application/json
+  body: '{}'
+- match: ^https://api.meiyouapp.com/user/chat_recommendations
+  status_code: 200
+  headers:
+    Content-Type: application/json
+  body: '{}'
+name: 美柚去广告增强版
+description: 去开屏、推荐、首页、个人中心、圈子、聊天等全部广告，仅保留经期记录
+author: ZenmoFeiShi[https://github.com/ZenmoFeiShi]
+homepage: https://hub.kelee.one
+icon: https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/PinDuoDuo.png
+dns: {}
+mitm:
+  hostnames:
+    includes:
+      - api.meiyouapp.com
+rules:
+- domain:
+    match: splash.meiyouapp.com
+    policy: REJECT
+- domain:
+    match: recommend.meiyouapp.com
+    policy: REJECT
+- domain:
+    match: banner.meiyouapp.com
+    policy: REJECT
+body_rewrites:
+- response_jq:
+    match: ^https://api.meiyouapp.com/homepage
+    filter: |
+      delpaths([
+        ["result","recommendations"],
+        ["result","banner_ads"],
+        ["result","bottom_tabs"],
+        ["result","dynamic_banner"]
+      ])
+- response_jq:
+    match: ^https://api.meiyouapp.com/personal
+    filter: |
+      delpaths([
+        ["result","icon_set"],
+        ["result","top_personal_icons"],
+        ["result","personal_center_style_v2_vo"]
+      ])
+- response_jq:
+    match: ^https://api.meiyouapp.com/circle
+    filter: delpaths([
+        ["result","recommendations"],
+        ["result","dynamic_banner"]
+      ])
+map_locals:
+- match: ^https://api.meiyouapp.com/user/recommendations
+  status_code: 200
+  headers:
+    Content-Type: application/json
+  body: '{}'
+- match: ^https://api.meiyouapp.com/user/chat_recommendations
   status_code: 200
   headers:
     Content-Type: application/json
