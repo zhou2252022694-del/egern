@@ -1,0 +1,30 @@
+name: 美柚去广告插件
+description: 转换自用户截图，包含分流、重写及MITM
+rules:
+  - DOMAIN,jingqi.youzibuy.com,REJECT
+  - DOMAIN,mgo.seeyouyima.com,REJECT
+  - DOMAIN,ad.seeyouyima.com,REJECT
+  - DOMAIN,ad-logs.seeyouyima.com,REJECT
+  - DOMAIN,circle.seeyouyima.com,REJECT
+  - DOMAIN,ab.seeyouyima.com,REJECT
+rewrites:
+  - match: ^https?:\/\/sub\.seeyouyima\.com\/v\d\/sub\/my_vip
+    type: jsonjq
+    policy: '.data={}'
+  - match: ^https?:\/\/common\.seeyouyima\.com\/v\d\/conf_list
+    type: reject
+  - match: ^https?:\/\/users\.seeyouyima\.com\/v\d\/wo\?
+    type: jsonjq
+    policy: 'del(.data.circle)'
+  - match: ^https?:\/\/circle\.xmseeyouyima\.com\/v\d\/feeds_recommend\?
+    type: jsonjq
+    policy: 'del(.data.activity_card)'
+  - match: ^https?:\/\/config-service\.seeyouyima\.com\/api\/configs\/batch
+    type: reject-200
+mitm:
+  hostnames:
+    - sub.seeyouyima.com
+    - common.seeyouyima.com
+    - users.seeyouyima.com
+    - circle.xmseeyouyima.com
+    - config-service.seeyouyima.com
